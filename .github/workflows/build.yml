@@ -14,6 +14,14 @@ jobs:
           sudo apt install -y python3-pip openjdk-17-jdk zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev cmake libffi-dev libssl-dev
           pip install --upgrade pip
           pip install Cython==0.29.33 buildozer
+      - name: Init and Accept Licenses
+        run: |
+          buildozer android debug || true
+          export SDK=$HOME/.buildozer/android/platform/android-sdk
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+          yes | $SDK/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          yes | $SDK/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33" "platform-tools" || true
       - name: Build APK
         run: |
           buildozer android debug
