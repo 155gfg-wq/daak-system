@@ -14,24 +14,23 @@ jobs:
           sudo apt install -y python3-pip openjdk-17-jdk zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev cmake libffi-dev libssl-dev
           pip install --upgrade pip
           pip install Cython==0.29.33 buildozer
-      - name: Accept Android Licenses
+      - name: Fix Android Licenses for 37
         run: |
-          buildozer android debug || true
           export SDK=$HOME/.buildozer/android/platform/android-sdk
-          echo "SDK at $SDK"
-          mkdir -p $SDK/licenses
-          mkdir -p ~/.android
+          mkdir -p $SDK/cmdline-tools
+          cd $SDK/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools-linux-11076708_latest.zip
+          mkdir -p latest
+          mv cmdline-tools/* latest/ || true
+          mkdir -p $SDK/licenses ~/.android
           touch ~/.android/repositories.cfg
           echo "8933bad161af4178b1185d1a37fbf41ea5269c55a071c7e15c9300f0e3e" > $SDK/licenses/android-sdk-license
           echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> $SDK/licenses/android-sdk-license
           echo "24333f8a63b6825ea9c5514f83c4501b8fb177b" >> $SDK/licenses/android-sdk-license
-          echo "y" > /tmp/yes.txt
-          find $SDK -name sdkmanager -type f | head -1
-          SDKMGR=$(find $SDK -name sdkmanager -type f | head -1)
-          chmod +x $SDKMGR || true
-          yes | $SDKMGR --licenses || true
-          yes | $SDKMGR "build-tools;33.0.2" "build-tools;37.0.0" "platforms;android-33" "platform-tools" || true
-          ls $SDK/build-tools/ || true
+          echo "y" | $SDK/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
+          echo "y" | $SDK/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "build-tools;37.0.0" "platforms;android-33" "platform-tools" || true
+          ls $SDK/build-tools/
       - name: Build APK
         run: |
           buildozer android debug
